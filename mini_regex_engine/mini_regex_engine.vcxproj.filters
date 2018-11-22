@@ -18,12 +18,30 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="regex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="automate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regex_matcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mini_regex_engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="automate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regex_matcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
