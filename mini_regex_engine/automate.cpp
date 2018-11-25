@@ -17,7 +17,7 @@ void automate::add_final_state(long long final_state) {
 	this->final_states.insert(final_state);
 }
 
-void automate::print_automate() {
+void automate::print() {
 	cout << "alphabet : ";
 	for (char c : this->alphabet) cout << c << " ";
 	cout << endl;

@@ -10,7 +10,7 @@
 
 //constexpr char CAT_OP = '\0';
 
-namespace regex
+namespace mini_regex
 {
 	using namespace std;
 

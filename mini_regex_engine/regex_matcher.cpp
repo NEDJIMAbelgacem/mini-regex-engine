@@ -41,3 +41,22 @@ void regex_matcher::print() {
 		}
 	}
 }
+
+long long regex_matcher::next_state(long long state, char c) {
+	if (this->states.find(state) == this->states.end() || this->alphabet.find(c) == this->alphabet.end()) {
+		return -1;
+	}
+	return this->trans_table[state][c];
+}
+
+long long regex_matcher::get_start() {
+	return this->start_state;
+}
+
+set<long long> regex_matcher::get_final_states() {
+	return this->final_states;
+}
+
+set<long long> regex_matcher::get_states() {
+	return this->states;
+}
