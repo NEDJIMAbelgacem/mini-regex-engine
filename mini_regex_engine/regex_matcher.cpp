@@ -12,7 +12,7 @@ regex_matcher::~regex_matcher()
 
 bool regex_matcher::match(string s) {
 	long long current_state = this->start_state;
-	for (char c : s) {
+	for (char& c : s) {
 		if (this->trans_table[current_state].find(c) == this->trans_table[current_state].end()) 
 			return false;
 		current_state = trans_table[current_state][c];

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "mini_regex.h"
 
-automate mini_regex::union_regex_automates(automate a1, automate a2, int& next_state_index) {
+automate mini_regex::union_regex_automates(const automate& a1, const automate& a2, long long& next_state_index) {
 	automate res;
 	res.set_start_state(next_state_index);
 	for (long long s : a1.final_states) res.add_final_state(s);
@@ -32,21 +32,7 @@ automate mini_regex::union_regex_automates(automate a1, automate a2, int& next_s
 	return res;
 }
 
-automate mini_regex::star_regex_automate(automate a, int& next_state_index) {
-	long long a_start_state = a.start_state;
-	set<long long> a_final_states = a.final_states;
-	for (long long s : a_final_states) {
-		a.add_transition(s, CAT_OP, next_state_index);
-	}
-	a.add_transition(next_state_index, CAT_OP, a_start_state);
-	a.set_start_state(next_state_index);
-	a.final_states = set<long long>{ next_state_index };
-
-	next_state_index++;
-	return a;
-}
-
-automate mini_regex::concat_regex_automates(automate a1, automate a2) {
+automate mini_regex::concat_regex_automates(const automate& a1, const automate& a2) {
 	automate res;
 	for (pair<long long, map<char, set<long long>>> p1 : a1.trans_table) {
 		long long s1 = p1.first;
@@ -90,7 +76,7 @@ string mini_regex::postfix_transform(string s) {
 	// pair<int, int>::first is the CAT_OP operator count
 	// pair<int, int>::second is the '|' operator count
 	pair<int, int> current_operators(0, 0);
-	while (pos < s.size()) {
+	while (pos != s.size()) {
 		int i;
 		string tail;
 		switch (s[pos]) {
@@ -159,14 +145,15 @@ string mini_regex::postfix_transform(string s) {
 	return res;
 }
 
-automate mini_regex::parse_postfix_format(string& s, int& next_state_index) {
+automate mini_regex::parse_postfix_format(string& s, long long& next_state_index) {
 	char c = s.back();
 	s.pop_back();
 	automate a1, a2;
 	switch (c) {
 	case '*':
 		a1 = parse_postfix_format(s, next_state_index);
-		return star_regex_automate(a1, next_state_index);
+		a1.star_automaton(next_state_index);
+		return a1;
 	case CAT_OP:
 		a1 = parse_postfix_format(s, next_state_index);
 		a2 = parse_postfix_format(s, next_state_index);
@@ -193,95 +180,27 @@ automate mini_regex::parse_postfix_format(string& s, int& next_state_index) {
 regex_matcher mini_regex::parse_expression(string s) {
 	string postfixed = postfix_transform(s);
 	//cout << "postfix : " << postfixed << endl;
-	int i = 0;
+	long long i = 0;
 	automate a = parse_postfix_format(postfixed, i);
 	//a.print_automate();
 	return generate_regex_matcher(a);
 }
 
 regex_matcher mini_regex::generate_regex_matcher(automate a) {
-	map<long long, map<char, set<long long>>> trans_table = a.trans_table;
-
-	map<long long, long long> visit_index;
-	map<long long, long long> min_neighbour_index;
-	map<long long, long long> components_mapping;
-	stack<long long> dfs_stack;
-	map<long long, bool> in_stack;
-
-	for (long long s : a.states) {
-		visit_index[s] = -1;
-		min_neighbour_index[s] = -1;
-		components_mapping[s] = s;
-		in_stack[s] = false;
-	}
-
-	// Tarjan algorithm implementation to find strongly connected states
-	// i.e : states that can reach each others using 0 length transitions
-	auto scc = [&visit_index, &min_neighbour_index, &dfs_stack, &in_stack, &components_mapping, &trans_table](long long state, long long& index, auto& scc) -> void {
-		visit_index[state] = index;
-		min_neighbour_index[state] = index;
-		index++;
-		dfs_stack.push(state);
-		in_stack[state] = true;
-
-		for (long long state2 : trans_table[state][CAT_OP]) {
-			if (visit_index[state2] == -1) {
-				scc(state2, index, scc);
-				if (min_neighbour_index[state2] < min_neighbour_index[state])
-					min_neighbour_index[state] = min_neighbour_index[state2];
-			}
-			else if (in_stack[state2]) {
-				if (visit_index[state2] < min_neighbour_index[state])
-					min_neighbour_index[state] = visit_index[state2];
-			}
-		}
-		if (min_neighbour_index[state] == visit_index[state]) {
-			while (dfs_stack.top() != state) {
-				long long i = dfs_stack.top();
-				in_stack[i] = false;
-				dfs_stack.pop();
-				components_mapping[i] = components_mapping[state];
-			}
-
-			long long i = dfs_stack.top();
-			in_stack[i] = false;
-			dfs_stack.pop();
-		}
-	};
-
-	// find strongly connected components for each state
-	long long i = 0;
-	for (long long s : a.states) {
-		if (visit_index[s] != -1) continue;
-		scc(s, i, scc);
-	}
+	map<long long, map<char, set<long long>>>& trans_table = a.trans_table;
 
 	// construct dirceted acyclic reduced graph of the states graph
-	map<long long, map<char, set<long long>>> dag_transitions;
-	set<long long> dag_states;
-	long long dag_start_state = components_mapping[a.start_state];
-	for (pair<long long, long long> p : components_mapping) dag_states.insert(p.second);
-	for (pair<long long, map<char, set<long long>>> p1 : trans_table) {
-		long long state1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long state2 : p2.second) {
-				if (c == CAT_OP && components_mapping[state1] == components_mapping[state2])
-					continue;
-				dag_transitions[components_mapping[state1]][c].insert(components_mapping[state2]);
-			}
-		}
-	}
+	a.delete_0_length_circuits();
+	map<long long, map<char, set<long long>>>& dag_transitions = a.trans_table;
+	set<long long>& dag_states = a.states;
+	long long& dag_start_state = a.start_state;
+	set<long long>& dag_final_states = a.final_states;
 
 	map<long long, set<long long>> reachable;
 	map<long long, bool> visited;
 	for (long long s : dag_states) {
 		visited[s] = false;
 	}
-
-	// find final state components
-	set<long long> dag_final_states;
-	for (long long s : a.final_states) dag_final_states.insert(components_mapping[s]);
 
 	// finds reachable components
 	auto reachable_func = [&visited, &dag_transitions, &reachable](long long state, auto& f) -> void {
@@ -366,7 +285,7 @@ regex_matcher mini_regex::generate_regex_matcher(automate a) {
 	map<long long, map<char, long long>> res_transitions;
 
 	map<set<long long>, long long> sets_mapping;
-	i = 0;
+	int i = 0;
 	for (set<long long> s : sets_states) {
 		sets_mapping[s] = i;
 		res_states.insert(i);

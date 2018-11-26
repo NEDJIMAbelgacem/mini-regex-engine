@@ -3,6 +3,7 @@
 #include <set>
 #include <vector>
 #include <stack>
+#include <algorithm>
 #include "regex_matcher.h"
 using namespace std;
 
@@ -24,5 +25,7 @@ public:
 	void set_start_state(long long start_state);
 	void add_final_state(long long final_state);
 	void add_transition(long long s1, char c, long long s2);
+	void delete_0_length_circuits();
+	void star_automaton(long long& next_state_index);
 	void print();
 };
