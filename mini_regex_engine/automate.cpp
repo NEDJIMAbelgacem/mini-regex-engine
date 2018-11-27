@@ -91,6 +91,7 @@ void automate::delete_0_length_circuits() {
 			dfs_stack.pop();
 		}
 	};
+
 	for (long long s : this->states) {
 		if (visit_index[s] == -1) {
 			scc(s, index, scc);
@@ -128,7 +129,45 @@ void automate::star_automaton(long long& next_state_index) {
 	next_state_index++;
 }
 
-automate::automate() {  }
+// warning : the 2 automata should have different states indexing
+void automate::concat_automaton(const automate& a, long long& next_state_index) {
+	for (pair<long long, map<char, set<long long>>> p1 : a.trans_table) {
+		long long& s1 = p1.first;
+		for (pair<char, set<long long>> p2 : p1.second) {
+			char& c = p2.first;
+			for (long long s2 : p2.second) {
+				this->add_transition(s1, c, s2);
+			}
+		}
+	}
+	for (long long s : this->final_states) {
+		this->add_transition(s, CAT_OP, a.start_state);
+	}
+	this->final_states = a.final_states;
+}
+
+void automate::union_automation(const automate& a, long long& next_state_index) {
+	for (pair<long long, map<char, set<long long>>> p1 : a.trans_table) {
+		long long& s1 = p1.first;
+		for (pair<char, set<long long>> p2 : p1.second) {
+			char& c = p2.first;
+			for (long long s2 : p2.second) 
+				this->add_transition(s1, c, s2);
+		}
+	}
+	this->final_states.insert(a.final_states.begin(), a.final_states.end());
+	this->states.insert(next_state_index);
+	this->add_transition(next_state_index, CAT_OP, this->start_state);
+	this->add_transition(next_state_index, CAT_OP, a.start_state);
+	this->start_state = next_state_index;
+	next_state_index++;
+}
+
+automate::automate(long long& index) { 
+	this->set_start_state(index);
+	this->states.insert(index);
+	index++;
+}
 automate::~automate()
 {
 }

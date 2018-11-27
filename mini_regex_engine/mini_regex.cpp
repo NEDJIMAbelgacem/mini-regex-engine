@@ -1,62 +1,6 @@
 #include "pch.h"
 #include "mini_regex.h"
-
-automate mini_regex::union_regex_automates(const automate& a1, const automate& a2, long long& next_state_index) {
-	automate res;
-	res.set_start_state(next_state_index);
-	for (long long s : a1.final_states) res.add_final_state(s);
-	for (long long s : a2.final_states) res.add_final_state(s);
-	for (pair<long long, map<char, set<long long>>> p1 : a1.trans_table) {
-		long long s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long s2 : p2.second) {
-				res.add_transition(s1, c, s2);
-			}
-		}
-	}
-
-	for (pair<long long, map<char, set<long long>>> p1 : a2.trans_table) {
-		long long s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long s2 : p2.second) {
-				res.add_transition(s1, c, s2);
-			}
-		}
-	}
-
-	res.add_transition(next_state_index, CAT_OP, a1.start_state);
-	res.add_transition(next_state_index, CAT_OP, a2.start_state);
-	next_state_index++;
-	return res;
-}
-
-automate mini_regex::concat_regex_automates(const automate& a1, const automate& a2) {
-	automate res;
-	for (pair<long long, map<char, set<long long>>> p1 : a1.trans_table) {
-		long long s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long s2 : p2.second) res.add_transition(s1, c, s2);
-		}
-	}
-	for (pair<long long, map<char, set<long long>>> p1 : a2.trans_table) {
-		long long s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long s2 : p2.second) res.add_transition(s1, c, s2);
-		}
-	}
-	res.set_start_state(a1.start_state);
-	for (long long fs : a2.final_states) {
-		res.add_final_state(fs);
-	}
-	for (long long fs : a1.final_states) {
-		res.add_transition(fs, CAT_OP, a2.start_state);
-	}
-	return res;
-}
+#include <chrono>
 
 // warning exits the program if the syntax is incorrect
 // TODO : use exceptions
@@ -146,9 +90,10 @@ string mini_regex::postfix_transform(string s) {
 }
 
 automate mini_regex::parse_postfix_format(string& s, long long& next_state_index) {
+
 	char c = s.back();
 	s.pop_back();
-	automate a1, a2;
+	automate a1(next_state_index), a2(next_state_index);
 	switch (c) {
 	case '*':
 		a1 = parse_postfix_format(s, next_state_index);
@@ -157,33 +102,51 @@ automate mini_regex::parse_postfix_format(string& s, long long& next_state_index
 	case CAT_OP:
 		a1 = parse_postfix_format(s, next_state_index);
 		a2 = parse_postfix_format(s, next_state_index);
-		return concat_regex_automates(a2, a1);
+		a2.concat_automaton(a1, next_state_index);
+		return a2;
 	case '|':
 		a1 = parse_postfix_format(s, next_state_index);
 		a2 = parse_postfix_format(s, next_state_index);
-		return union_regex_automates(a1, a2, next_state_index);
+		a1.union_automation(a2, next_state_index);
+		return a1;
 	case ')':
 		a1 = parse_postfix_format(s, next_state_index);
 		s.pop_back();
 		return a1;
 	default:
-		automate a;
+		automate a(next_state_index);
 		a.set_start_state(next_state_index);
 		a.add_final_state(next_state_index + 1);
 		a.add_transition(next_state_index, c, next_state_index + 1);
 		next_state_index += 2;
 		return a;
 	}
-	return automate();
+	return automate(next_state_index);
 }
 
 regex_matcher mini_regex::parse_expression(string s) {
+	long long m1 = chrono::duration_cast<chrono::microseconds>(
+		chrono::system_clock::now().time_since_epoch()
+		).count();
 	string postfixed = postfix_transform(s);
+	long long m2 = chrono::duration_cast<chrono::microseconds>(
+		chrono::system_clock::now().time_since_epoch()
+		).count();
+	cout << "postfixed format generation time : " << (m2 - m1) << endl;
 	//cout << "postfix : " << postfixed << endl;
 	long long i = 0;
 	automate a = parse_postfix_format(postfixed, i);
+	long long m3 = chrono::duration_cast<chrono::microseconds>(
+		chrono::system_clock::now().time_since_epoch()
+		).count();
+	cout << "automate generation time : " << (m3 - m2) << endl;
+	long long m4 = chrono::duration_cast<chrono::microseconds>(
+		chrono::system_clock::now().time_since_epoch()
+		).count();
 	//a.print_automate();
-	return generate_regex_matcher(a);
+	regex_matcher r = generate_regex_matcher(a);
+	cout << "automate transformation time : " << (m4 - m3) << endl;
+	return r;
 }
 
 regex_matcher mini_regex::generate_regex_matcher(automate a) {
