@@ -3,7 +3,7 @@
 #include <iostream>
 
 void automate::add_transition(long long s1, char c, long long s2) {
-	this->trans_table[s1][c].insert(s2);
+	this->trans_table[make_tuple(s1, c)].insert(s2);
 	this->states.insert(s1);
 	this->states.insert(s2);
 	this->alphabet.insert(c);
@@ -29,18 +29,16 @@ void automate::print() {
 	for (long long s : this->final_states) cout << s << " ";
 	cout << endl;
 	cout << "transitions : " << endl;
-	for (pair<long long, map<char, set<long long>>> p1 : this->trans_table) {
-		long long s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char c = p2.first;
-			for (long long s2 : p2.second) {
-				cout << "(" << s1 << ", " << c << ", " << s2 << ")" << endl;
-			}
+	for (pair<tuple<long long, char>, set<long long>> p1 : this->trans_table) {
+		long long s1 = get<0>(p1.first);
+		char c = get<1>(p1.first);
+		for (long long s2 : p1.second) {
+			cout << "(" << s1 << ", " << c << ", " << s2 << ")" << endl;
 		}
 	}
 }
 
-automate::automate(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<long long, map<char, set<long long>>> trans_table_i) 
+automate::automate(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<tuple<long long, char>, set<long long>> trans_table_i)
 	: alphabet(alphabet_i), states(states_i), start_state(start_state_i), final_states(final_states_i), trans_table(trans_table_i)
 {
 	
@@ -52,7 +50,7 @@ void automate::delete_0_length_circuits() {
 	stack<long long> dfs_stack;
 	map<long long, bool> in_stack;
 	map<long long, long long> components_mapping;
-	map<long long, map<char, set<long long>>>& trans_table = this->trans_table;
+	map<tuple<long long, char>, set<long long>>& trans_table = this->trans_table;
 	long long index = 0;
 	for (long long s : this->states) {
 		visit_index[s] = -1;
@@ -67,7 +65,7 @@ void automate::delete_0_length_circuits() {
 		dfs_stack.push(state);
 		in_stack[state] = true;
 
-		for (long long state2 : trans_table[state][CAT_OP]) {
+		for (long long state2 : trans_table[make_tuple(state, CAT_OP)]) {
 			if (visit_index[state2] == -1) {
 				scc(state2, index, scc);
 				if (min_neighbour_index[state2] < min_neighbour_index[state])
@@ -104,15 +102,14 @@ void automate::delete_0_length_circuits() {
 	this->states = new_States;
 	this->final_states = new_final_states;
 	this->start_state = components_mapping[this->start_state];
-	map<long long, map<char, set<long long>>> new_trans_table;
-	for (pair<long long, map<char, set<long long>>> p1 : this->trans_table) {
-		long long s1 = components_mapping[p1.first];
-		for (pair<char, set<long long>> p2 : p1.second) {
-			for (long long s : p2.second) {
-				long long s2 = components_mapping[s];
-				if (p2.first == CAT_OP && s1 == s2) continue;
-				new_trans_table[s1][p2.first].insert(s2);
-			}
+	map<tuple<long long, char>, set<long long>> new_trans_table;
+	for (pair<tuple<long long, char>, set<long long>> p1 : this->trans_table) {
+		long long s1 = components_mapping[get<0>(p1.first)];
+		char c = get<1>(p1.first);
+		for (long long p2 : p1.second) {
+			long long s2 = components_mapping[p2];
+			if (c == CAT_OP && s1 == s2) continue;
+			new_trans_table[make_tuple(s1, c)].insert(s2);
 		}
 	}
 	this->trans_table = new_trans_table;
@@ -131,43 +128,36 @@ void automate::star_automaton(long long& next_state_index) {
 
 // warning : the 2 automata should have different states indexing
 void automate::concat_automaton(const automate& a, long long& next_state_index) {
-	for (pair<long long, map<char, set<long long>>> p1 : a.trans_table) {
-		long long& s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char& c = p2.first;
-			for (long long s2 : p2.second) {
-				this->add_transition(s1, c, s2);
-			}
+	for (pair<tuple<long long, char>, set<long long>> p1 : a.trans_table) {
+		for (long long p2 : p1.second) {
+			this->add_transition(get<0>(p1.first), get<1>(p1.first), p2);
 		}
 	}
-	for (long long s : this->final_states) {
+	for (long long s : this->final_states)
 		this->add_transition(s, CAT_OP, a.start_state);
-	}
 	this->final_states = a.final_states;
 }
 
 void automate::union_automation(const automate& a, long long& next_state_index) {
-	for (pair<long long, map<char, set<long long>>> p1 : a.trans_table) {
-		long long& s1 = p1.first;
-		for (pair<char, set<long long>> p2 : p1.second) {
-			char& c = p2.first;
-			for (long long s2 : p2.second) 
-				this->add_transition(s1, c, s2);
+	for (pair<tuple<long long, char>, set<long long>> p1 : a.trans_table) {
+		for (long long p2 : p1.second) {
+			this->add_transition(get<0>(p1.first), get<1>(p1.first), p2);
 		}
 	}
 	this->final_states.insert(a.final_states.begin(), a.final_states.end());
 	this->states.insert(next_state_index);
 	this->add_transition(next_state_index, CAT_OP, this->start_state);
 	this->add_transition(next_state_index, CAT_OP, a.start_state);
-	this->start_state = next_state_index;
+	this->set_start_state(next_state_index);
 	next_state_index++;
 }
 
 automate::automate(long long& index) { 
-	this->set_start_state(index);
+	/*this->set_start_state(index);
 	this->states.insert(index);
-	index++;
+	index++;*/
 }
+
 automate::~automate()
 {
 }

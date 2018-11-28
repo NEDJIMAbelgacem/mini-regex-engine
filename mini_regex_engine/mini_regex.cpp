@@ -136,6 +136,7 @@ regex_matcher mini_regex::parse_expression(string s) {
 	//cout << "postfix : " << postfixed << endl;
 	long long i = 0;
 	automate a = parse_postfix_format(postfixed, i);
+	//a.print();
 	long long m3 = chrono::duration_cast<chrono::microseconds>(
 		chrono::system_clock::now().time_since_epoch()
 		).count();
@@ -143,18 +144,19 @@ regex_matcher mini_regex::parse_expression(string s) {
 	long long m4 = chrono::duration_cast<chrono::microseconds>(
 		chrono::system_clock::now().time_since_epoch()
 		).count();
-	//a.print_automate();
 	regex_matcher r = generate_regex_matcher(a);
+	//r.print();
 	cout << "automate transformation time : " << (m4 - m3) << endl;
 	return r;
 }
 
 regex_matcher mini_regex::generate_regex_matcher(automate a) {
-	map<long long, map<char, set<long long>>>& trans_table = a.trans_table;
+	//map<tuple<long long, char>, set<long long>>& trans_table = a.trans_table;
 
 	// construct dirceted acyclic reduced graph of the states graph
 	a.delete_0_length_circuits();
-	map<long long, map<char, set<long long>>>& dag_transitions = a.trans_table;
+	//a.print();
+	map<tuple<long long, char>, set<long long>>& dag_transitions = a.trans_table;
 	set<long long>& dag_states = a.states;
 	long long& dag_start_state = a.start_state;
 	set<long long>& dag_final_states = a.final_states;
@@ -169,7 +171,7 @@ regex_matcher mini_regex::generate_regex_matcher(automate a) {
 	auto reachable_func = [&visited, &dag_transitions, &reachable](long long state, auto& f) -> void {
 		visited[state] = true;
 		set<long long> r{ state };
-		for (long long state2 : dag_transitions[state][CAT_OP]) {
+		for (long long state2 : dag_transitions[make_tuple(state, CAT_OP)]) {
 			if (state2 == state) continue;
 			if (!visited[state2]) f(state2, f);
 			r.insert(reachable[state2].begin(), reachable[state2].end());
@@ -219,7 +221,7 @@ regex_matcher mini_regex::generate_regex_matcher(automate a) {
 			if (c == CAT_OP) continue;
 			set<long long> c_reachable;
 			for (long long state : in_reach) {
-				set<long long> r3 = dag_transitions[state][c];
+				set<long long> r3 = dag_transitions[make_tuple(state, c)];
 				c_reachable.insert(r3.begin(), r3.end());
 			}
 			sets_transitions[s][c] = c_reachable;
