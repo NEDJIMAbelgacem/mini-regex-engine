@@ -5,7 +5,7 @@
 #include <stack>
 #include <algorithm>
 #include <tuple>
-#include "regex_matcher.h"
+#include "regex_instance.h"
 
 using namespace std;
 // (alphabet, states, start_state, final_state, transitions table)
@@ -30,7 +30,8 @@ public:
 	void add_final_state(long long final_state);
 	void add_transition(long long s1, char c, long long s2);
 	void delete_0_length_circuits();
-
+	void convert_to_searcher();
+	bool is_looping_over_itself(long long state);
 	void star_automaton(long long& next_state_index);
 	void concat_automaton(const automate& a, long long& next_state_index);
 	void union_automation(const automate& a, long long& next_state_index);

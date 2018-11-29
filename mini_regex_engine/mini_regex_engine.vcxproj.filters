@@ -21,10 +21,10 @@
     <ClInclude Include="automate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="regex_matcher.h">
+    <ClInclude Include="mini_regex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mini_regex.h">
+    <ClInclude Include="regex_instance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,10 +38,10 @@
     <ClCompile Include="automate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="regex_matcher.cpp">
+    <ClCompile Include="mini_regex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mini_regex.cpp">
+    <ClCompile Include="regex_instance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

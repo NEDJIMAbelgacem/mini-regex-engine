@@ -124,7 +124,7 @@ automate mini_regex::parse_postfix_format(string& s, long long& next_state_index
 	return automate(next_state_index);
 }
 
-regex_matcher mini_regex::parse_expression(string s) {
+regex_instance mini_regex::parse_expression(string s) {
 	long long m1 = chrono::duration_cast<chrono::microseconds>(
 		chrono::system_clock::now().time_since_epoch()
 		).count();
@@ -144,13 +144,13 @@ regex_matcher mini_regex::parse_expression(string s) {
 	long long m4 = chrono::duration_cast<chrono::microseconds>(
 		chrono::system_clock::now().time_since_epoch()
 		).count();
-	regex_matcher r = generate_regex_matcher(a);
+	regex_instance r = generate_regex_instance(a);
 	//r.print();
 	cout << "automate transformation time : " << (m4 - m3) << endl;
 	return r;
 }
 
-regex_matcher mini_regex::generate_regex_matcher(automate a) {
+regex_instance mini_regex::generate_regex_instance(automate a) {
 	//map<tuple<long long, char>, set<long long>>& trans_table = a.trans_table;
 
 	// construct dirceted acyclic reduced graph of the states graph
@@ -271,5 +271,5 @@ regex_matcher mini_regex::generate_regex_matcher(automate a) {
 		}
 	}
 
-	return regex_matcher(a.alphabet, res_states, res_start_state, res_final_states, res_transitions);
+	return regex_instance(a.alphabet, res_states, res_start_state, res_final_states, res_transitions);
 }

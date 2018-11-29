@@ -154,7 +154,7 @@
     <ClInclude Include="automate.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="mini_regex.h" />
-    <ClInclude Include="regex_matcher.h" />
+    <ClInclude Include="regex_instance.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="automate.cpp" />
@@ -166,7 +166,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="mini_regex.cpp" />
-    <ClCompile Include="regex_matcher.cpp" />
+    <ClCompile Include="regex_instance.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

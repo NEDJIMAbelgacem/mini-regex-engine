@@ -152,6 +152,28 @@ void automate::union_automation(const automate& a, long long& next_state_index) 
 	next_state_index++;
 }
 
+bool automate::is_looping_over_itself(long long s) {
+	bool is_looping = true;
+	for (char c : this->alphabet) {
+		tuple<long long, char> t = make_tuple(s, c);
+		for (long long s2 : this->trans_table[t]) {
+			if (s2 != s) {
+				is_looping = false;
+				break;
+			}
+		}
+		if (!is_looping) break;
+	}
+	return is_looping;
+}
+
+void automate::convert_to_searcher() {
+	for (long long s : this->states) {
+		if (is_looping_over_itself(s)) continue;
+		this->add_transition(s, CAT_OP, this->start_state);
+	}
+}
+
 automate::automate(long long& index) { 
 	/*this->set_start_state(index);
 	this->states.insert(index);
