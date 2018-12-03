@@ -3,9 +3,9 @@
 #include <set>
 #include <stack>
 #include <iostream>
-#include <fstream>
+#include <string>
 #include <ostream>
-
+#include <fstream>
 #include "automate.h"
 
 
@@ -29,8 +29,8 @@ public:
 	set<long long> get_final_states();
 	set<long long> get_states();
 	long long next_state(long long state, char c);
-	void output_to_file(string file_name);
-	void show_picture();
+	string convert_to_dot_language();
+	void render_to_png(string graph_name);
 	void print();
 	~regex_instance();
 };

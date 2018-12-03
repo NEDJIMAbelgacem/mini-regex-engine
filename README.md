@@ -22,16 +22,11 @@ If you find some invalid regex don't hesitate to flag an issue or contact me.
   * Nothing worthy actually :(
   
 # building :
-  * install python3
   * install graphviz (look for the installer from their site and add %ROOT%\bin to envirnment variable).
-  * install graphviz python package (using pip or whatever pachage manager you want).
-  * change the constexpr SCRIPT_PATH to the Visualiser.py path.
-  * change the constexpr TMP_FILE_PATH to any accessible unused file name.
-  * build using MSVC2017
-  * enjoy
+  * build using MSVC2017.
+  * use the classes and functions inside as you want.
 
 # TODO :
-  1) delete dependencies with python.
-  2) change from postfixed format to abstract syntax tree.
-  3) add other operators.
-  4) use cmake :/
+  1) change from postfixed format to abstract syntax tree.
+  2) add other operators.
+  3) use cmake :/

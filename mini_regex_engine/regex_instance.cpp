@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "regex_instance.h"
 
-constexpr const char* SCRIPT_PATH = "E:\\Visualiser.py";
-constexpr const char* TMP_FILE_PATH = "E:\\f.out";
-
 regex_instance::regex_instance(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<long long, map<char, long long>> trans_table_i)
 	: alphabet(alphabet_i), states(states_i), start_state(start_state_i), final_states(final_states_i), trans_table(trans_table_i)
 {
@@ -145,30 +142,33 @@ long long regex_instance::trans_table_size() {
 	return n;
 }
 
-void regex_instance::output_to_file(string file_name) {
-	filebuf fb;
-	fb.open(file_name, ios::out);
-	ostream os(&fb);
-	os << this->alphabet.size() << " " << this->states.size() << " " << this->final_states.size() << " " << this->trans_table_size() << " " << this->start_state << "\n";
-	for (char c : this->alphabet) os << c << " ";
-	os << "\n";
-	for (long long s : this->states) os << s << " ";
-	os << "\n";
-	for (long long s : this->final_states) os << s << " ";
-	os << "\n";
+string regex_instance::convert_to_dot_language() {
+	string dot = "digraph {\n\trankdir=LR;\n";
+	dot += "\tstart;\n";
+	for (long long s : this->states) {
+		if (s == this->start_state) continue;
+		dot += string("\t") + to_string(s) + "[shape=circle];\n";
+	}
 	for (pair<long long, map<char, long long>> p1 : this->trans_table) {
-		long long& s1 = p1.first;
+		string s1 = p1.first == this->start_state ? "start" : to_string(p1.first);
 		for (pair<char, long long> p2 : p1.second) {
 			char& c = p2.first;
-			long long& s2 = p2.second;
-			os << s1 << " " << c << " " << s2 << "\n";
+			string s2 = p2.second == this->start_state ? "start" : to_string(p2.second);
+			dot += string("\t") + s1 + " -> " + s2 + "[label=" + c + "];\n";
 		}
 	}
-	fb.close();
+	dot += "}";
+	return dot;
 }
 
-void regex_instance::show_picture() {
-	this->output_to_file(TMP_FILE_PATH);
-	string cmd = string("Python ") + SCRIPT_PATH + " " + TMP_FILE_PATH;
+void regex_instance::render_to_png(string graph_name) {
+	string dot = this->convert_to_dot_language();
+	filebuf fb;
+	fb.open(graph_name, std::ios::out);
+	ostream os(&fb);
+	os << dot;
+	fb.close();
+	string cmd = "dot -Tpng " + graph_name + " -o " + graph_name + ".png";
 	system(cmd.data());
+	remove(graph_name.data());
 }
