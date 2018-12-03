@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "regex_instance.h"
 
+constexpr const char* SCRIPT_PATH = "E:\\Visualiser.py";
+constexpr const char* TMP_FILE_PATH = "E:\\f.out";
+
 regex_instance::regex_instance(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<long long, map<char, long long>> trans_table_i)
 	: alphabet(alphabet_i), states(states_i), start_state(start_state_i), final_states(final_states_i), trans_table(trans_table_i)
 {
@@ -165,6 +168,7 @@ void regex_instance::output_to_file(string file_name) {
 }
 
 void regex_instance::show_picture() {
-	this->output_to_file("E:\\f.out");
-	system("Python E:\\Visualiser.py E:\\f.out");
+	this->output_to_file(TMP_FILE_PATH);
+	string cmd = string("Python ") + SCRIPT_PATH + " " + TMP_FILE_PATH;
+	system(cmd.data());
 }
