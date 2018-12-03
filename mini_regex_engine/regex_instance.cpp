@@ -134,3 +134,37 @@ set<long long> regex_instance::get_final_states() {
 set<long long> regex_instance::get_states() {
 	return this->states;
 }
+
+long long regex_instance::trans_table_size() {
+	long long n = 0;
+	for (pair<long long, map<char, long long>> p : this->trans_table)
+		n += p.second.size();
+	return n;
+}
+
+void regex_instance::output_to_file(string file_name) {
+	filebuf fb;
+	fb.open(file_name, ios::out);
+	ostream os(&fb);
+	os << this->alphabet.size() << " " << this->states.size() << " " << this->final_states.size() << " " << this->trans_table_size() << " " << this->start_state << "\n";
+	for (char c : this->alphabet) os << c << " ";
+	os << "\n";
+	for (long long s : this->states) os << s << " ";
+	os << "\n";
+	for (long long s : this->final_states) os << s << " ";
+	os << "\n";
+	for (pair<long long, map<char, long long>> p1 : this->trans_table) {
+		long long& s1 = p1.first;
+		for (pair<char, long long> p2 : p1.second) {
+			char& c = p2.first;
+			long long& s2 = p2.second;
+			os << s1 << " " << c << " " << s2 << "\n";
+		}
+	}
+	fb.close();
+}
+
+void regex_instance::show_picture() {
+	this->output_to_file("E:\\f.out");
+	system("Python E:\\Visualiser.py E:\\f.out");
+}

@@ -3,6 +3,9 @@
 #include <set>
 #include <stack>
 #include <iostream>
+#include <fstream>
+#include <ostream>
+
 #include "automate.h"
 
 
@@ -15,6 +18,7 @@ class regex_instance
 	long long start_state;
 	set<long long> final_states;
 	map<long long, map<char, long long>> trans_table;
+	long long trans_table_size();
 public:
 	regex_instance(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<long long, map<char, long long>> trans_table_i);
 	bool match(string s);
@@ -25,6 +29,8 @@ public:
 	set<long long> get_final_states();
 	set<long long> get_states();
 	long long next_state(long long state, char c);
+	void output_to_file(string file_name);
+	void show_picture();
 	void print();
 	~regex_instance();
 };
