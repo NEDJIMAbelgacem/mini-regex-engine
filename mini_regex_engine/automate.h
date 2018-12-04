@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <tuple>
 #include "regex_instance.h"
+#include "abstract_syntax_tree.h"
 
 using namespace std;
 // (alphabet, states, start_state, final_state, transitions table)
@@ -24,6 +25,7 @@ public:
 	map<tuple<long long, char>, set<long long>> trans_table;
 public:
 	automate(long long& index);
+	automate(abstract_syntax_tree* ast, long long& index);
 	~automate();
 	automate(set<char> alphabet_i, set<long long> states_i, long long start_state_i, set<long long> final_states_i, map<tuple<long long, char>, set<long long>> trans_table_t);
 	void set_start_state(long long start_state);

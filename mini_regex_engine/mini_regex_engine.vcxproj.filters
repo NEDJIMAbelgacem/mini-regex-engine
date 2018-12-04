@@ -27,6 +27,9 @@
     <ClInclude Include="regex_instance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="abstract_syntax_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -42,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="regex_instance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="abstract_syntax_tree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

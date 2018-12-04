@@ -175,9 +175,41 @@ void automate::convert_to_searcher() {
 }
 
 automate::automate(long long& index) { 
-	/*this->set_start_state(index);
+	this->set_start_state(index);
 	this->states.insert(index);
-	index++;*/
+	index++;
+}
+
+automate::automate(abstract_syntax_tree* ast, long long& index) {
+	if (ast == nullptr) return;
+
+	automate left_a(ast->left, index);
+	automate right_a(ast->right, index);
+
+	switch (ast->type) {
+	case abstract_syntax_tree::Star_OP:
+		left_a.star_automaton(index);
+		break;
+	case abstract_syntax_tree::Concat_OP:
+		left_a.concat_automaton(right_a, index);
+		break;
+	case abstract_syntax_tree::Union_OP:
+		left_a.union_automation(right_a, index);
+		break;
+	case abstract_syntax_tree::Leaf:
+		this->add_transition(index, ast->c, index + 1);
+		this->set_start_state(index);
+		this->add_final_state(index + 1);
+		index += 2;
+		break;
+	}
+	if (ast->type != abstract_syntax_tree::Leaf) {
+		this->alphabet = left_a.alphabet;
+		this->states = left_a.states;
+		this->final_states = left_a.final_states;
+		this->start_state = left_a.start_state;
+		this->trans_table = left_a.trans_table;
+	}
 }
 
 automate::~automate()

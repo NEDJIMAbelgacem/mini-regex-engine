@@ -144,17 +144,21 @@ long long regex_instance::trans_table_size() {
 
 string regex_instance::convert_to_dot_language() {
 	string dot = "digraph {\n\trankdir=LR;\n";
-	dot += "\tstart;\n";
+	string start_shape = this->final_states.find(this->start_state) == this->final_states.end() ? "[shape=circle]" : "[shape=doublecircle]";
+	dot += "\tstart" + start_shape + ";\n";
 	for (long long s : this->states) {
 		if (s == this->start_state) continue;
-		dot += string("\t") + to_string(s) + "[shape=circle];\n";
+		string shape;
+		if (this->final_states.find(s) != this->final_states.end()) shape = "[shape=doublecircle];\n";
+		else shape = "[shape=circle];\n";
+		dot += string("\t") + to_string(s) + shape;
 	}
 	for (pair<long long, map<char, long long>> p1 : this->trans_table) {
 		string s1 = p1.first == this->start_state ? "start" : to_string(p1.first);
 		for (pair<char, long long> p2 : p1.second) {
 			char& c = p2.first;
 			string s2 = p2.second == this->start_state ? "start" : to_string(p2.second);
-			dot += string("\t") + s1 + " -> " + s2 + "[label=" + c + "];\n";
+			dot += string("\t") + s1 + " -> " + s2 + "[label=\"" + c + "\"];\n";
 		}
 	}
 	dot += "}";
@@ -167,8 +171,11 @@ void regex_instance::render_to_png(string graph_name) {
 	fb.open(graph_name, std::ios::out);
 	ostream os(&fb);
 	os << dot;
+	cout << dot << endl;
 	fb.close();
 	string cmd = "dot -Tpng " + graph_name + " -o " + graph_name + ".png";
+	system(cmd.data());
+	cmd = graph_name + ".png";
 	system(cmd.data());
 	remove(graph_name.data());
 }
