@@ -151,11 +151,9 @@ void automate::union_automation(const automate& a, long long& next_state_index) 
 	next_state_index++;
 }
 
-void automate::convert_to_searcher() {
-	for (long long s : this->states) {
-		if (is_looping_over_itself(s)) continue;
-		this->add_transition(s, CAT_OP, this->start_state);
-	}
+void automate::optional_operation(long long& next_state_index) {
+	this->add_transition(this->start_state, CAT_OP, next_state_index);
+	next_state_index++;
 }
 
 automate::automate(long long& index) { 
@@ -173,6 +171,9 @@ automate::automate(abstract_syntax_tree* ast, long long& index) {
 	switch (ast->type) {
 	case abstract_syntax_tree::Star_OP:
 		left_a.star_automaton(index);
+		break;
+	case abstract_syntax_tree::Optional_OP:
+		left_a.optional_operation(index);
 		break;
 	case abstract_syntax_tree::Concat_OP:
 		left_a.concat_automaton(right_a, index);
