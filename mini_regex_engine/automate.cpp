@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "automate.h"
-#include <iostream>
 
 void automate::add_transition(long long s1, char c, long long s2) {
 	this->trans_table[make_tuple(s1, c)].insert(s2);
@@ -150,21 +149,6 @@ void automate::union_automation(const automate& a, long long& next_state_index) 
 	this->add_transition(next_state_index, CAT_OP, a.start_state);
 	this->set_start_state(next_state_index);
 	next_state_index++;
-}
-
-bool automate::is_looping_over_itself(long long s) {
-	bool is_looping = true;
-	for (char c : this->alphabet) {
-		tuple<long long, char> t = make_tuple(s, c);
-		for (long long s2 : this->trans_table[t]) {
-			if (s2 != s) {
-				is_looping = false;
-				break;
-			}
-		}
-		if (!is_looping) break;
-	}
-	return is_looping;
 }
 
 void automate::convert_to_searcher() {

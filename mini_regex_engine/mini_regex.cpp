@@ -1,50 +1,27 @@
 #include "pch.h"
 #include "mini_regex.h"
-#include <chrono>
 
 regex_instance mini_regex::parse_expression(string s) {
 	// add concatenation operator denoted by CAT_OP
+	// s2 is the regex after the insertion of concatenation operator
 	string s2;
 	for (char c : s) {
 		if (s2.size() != 0 && s2.back() != '(' && s2.back() != '|' && c != ')' && c != '|' && c != '*') s2.push_back(CAT_OP);
 		s2.push_back(c);
 	}
-	/*long long m1 = chrono::duration_cast<chrono::microseconds>(
-		chrono::system_clock::now().time_since_epoch()
-		).count();*/
-	//string postfixed = postfix_transform(s);
-	cout << s2 << endl;
 	abstract_syntax_tree* ast = abstract_syntax_tree::construct_ast(s2);
-	/*long long m2 = chrono::duration_cast<chrono::microseconds>(
-		chrono::system_clock::now().time_since_epoch()
-		).count();
-	cout << "postfixed format generation time : " << (m2 - m1) << endl;
-	//cout << "postfix : " << postfixed << endl;*/
-	//ast->render_ast("ast");
 	long long i = 0;
 	automate a(ast, i);
-	//automate a = parse_postfix_format(postfixed, i);
-	//a.print();
-	/*long long m3 = chrono::duration_cast<chrono::microseconds>(
-		chrono::system_clock::now().time_since_epoch()
-		).count();
-	cout << "automate generation time : " << (m3 - m2) << endl;
-	long long m4 = chrono::duration_cast<chrono::microseconds>(
-		chrono::system_clock::now().time_since_epoch()
-		).count();*/
 	regex_instance r = generate_regex_instance(a);
-	//r.print();
-	//cout << "automate transformation time : " << (m4 - m3) << endl;
 	delete ast;
 	return r;
 }
 
 regex_instance mini_regex::generate_regex_instance(automate a) {
-	//map<tuple<long long, char>, set<long long>>& trans_table = a.trans_table;
 
 	// construct dirceted acyclic reduced graph of the states graph
 	a.delete_0_length_circuits();
-	//a.print();
+
 	map<tuple<long long, char>, set<long long>>& dag_transitions = a.trans_table;
 	set<long long>& dag_states = a.states;
 	long long& dag_start_state = a.start_state;
