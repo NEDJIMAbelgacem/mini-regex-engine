@@ -14,6 +14,9 @@ abstract_syntax_tree::abstract_syntax_tree(char c)
 	case '?':
 		this->type = Optional_OP;
 		break;
+	case '+':
+		this->type = Plus_OP;
+		break;
 	case '\0':
 		this->type = Concat_OP;
 		break;
@@ -47,10 +50,8 @@ abstract_syntax_tree* abstract_syntax_tree::last_instruction(string& s) {
 		return nullptr;
 		break;
 	case '*':
-		root = new abstract_syntax_tree(c);
-		root->left = last_instruction(s);
-		break;
 	case '?':
+	case '+':
 		root = new abstract_syntax_tree(c);
 		root->left = last_instruction(s);
 		break;
@@ -82,7 +83,7 @@ abstract_syntax_tree* abstract_syntax_tree::construct_ast(string& s) {
 			root->right = right;
 			break;
 		default:
-			// errors
+			// error
 			break;
 		}
 		right = root;

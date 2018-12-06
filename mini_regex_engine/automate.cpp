@@ -151,9 +151,46 @@ void automate::union_automation(const automate& a, long long& next_state_index) 
 	next_state_index++;
 }
 
-void automate::optional_operation(long long& next_state_index) {
-	this->add_transition(this->start_state, CAT_OP, next_state_index);
+void automate::optional_automaton(long long& next_state_index) {
+	for (long long fs : this->final_states) {
+		this->add_transition(this->start_state, CAT_OP, next_state_index);
+		this->add_transition(next_state_index, CAT_OP, fs);
+	}
 	next_state_index++;
+}
+
+void automate::plus_automaton(long long& next_next_state_index) {
+	map<tuple<long long, char>, set<long long>> trans_table2;
+	// make a copy of the current transitions table layout with different states indexing
+	for (pair<tuple<long long, char>, set<long long>> p1 : this->trans_table) {
+		long long& s1 = get<0>(p1.first);
+		char& c = get<1>(p1.first);
+		for (long long s2 : p1.second)
+			trans_table2[make_pair(s1 + next_next_state_index, c)].insert(s2 + next_next_state_index);
+	}
+	// add the transition to the this automate transition table
+	for (pair<tuple<long long, char>, set<long long>> p : trans_table2) {
+		long long& s1 = get<0>(p.first);
+		char& c = get<1>(p.first);
+		for (long long s2 : p.second) 
+			this->add_transition(s1, c, s2);
+	}
+	// define a looping point
+	long long looping_point = this->start_state + next_next_state_index;
+	// join the final states of the previous final states with the looping point
+	for (long long s : this->final_states) {
+		this->add_transition(s, CAT_OP, looping_point);
+	}
+	// do a partial iteration over the second part of the automaton
+	long long indexing_bias = next_next_state_index;
+	next_next_state_index *= 2;
+	for (long long fs : this->final_states) {
+		this->add_transition(fs + indexing_bias, CAT_OP, next_next_state_index);
+		this->add_transition(next_next_state_index, CAT_OP, looping_point);
+		next_next_state_index++;
+	}
+	this->final_states.clear();
+	this->final_states.insert(looping_point);
 }
 
 automate::automate(long long& index) { 
@@ -173,7 +210,10 @@ automate::automate(abstract_syntax_tree* ast, long long& index) {
 		left_a.star_automaton(index);
 		break;
 	case abstract_syntax_tree::Optional_OP:
-		left_a.optional_operation(index);
+		left_a.optional_automaton(index);
+		break;
+	case abstract_syntax_tree::Plus_OP:
+		left_a.plus_automaton(index);
 		break;
 	case abstract_syntax_tree::Concat_OP:
 		left_a.concat_automaton(right_a, index);
@@ -195,6 +235,42 @@ automate::automate(abstract_syntax_tree* ast, long long& index) {
 		this->start_state = left_a.start_state;
 		this->trans_table = left_a.trans_table;
 	}
+}
+
+string automate::convert_to_dot_language() {
+	string dot = "digraph {\nrankdir=LR;\n";
+	map<long long, string> states_naming;
+	map<long long, string> states_shapes;
+	for (long long s : this->states) states_naming[s] = to_string(s);
+	states_naming[this->start_state] = "start";
+	for (long long s : this->states) states_shapes[s] = "circle";
+	for (long long fs : this->final_states) states_shapes[fs] = "doublecircle";
+	for (long long s : this->states) dot += "\t" + states_naming[s] + "[shape=" + states_shapes[s] + "];\n";
+	for (pair<tuple<long long, char>, set<long long>> p : this->trans_table) {
+		long long& s1 = get<0>(p.first);
+		string c = "";
+		if (get<1>(p.first) == '\0') c = "ep";
+		else c = get<1>(p.first);
+		for (long long s2 : p.second) {
+			dot += "\t" + states_naming[s1] + " -> " + states_naming[s2] + "[label=\"" + c + "\"];\n";
+		}
+	}
+	dot += "}";
+	return dot;
+}
+
+void automate::render_automaton(string automaton_name) {
+	string dot = this->convert_to_dot_language();
+	filebuf fb;
+	fb.open(automaton_name, std::ios::out);
+	ostream os(&fb);
+	os << dot;
+	fb.close();
+	string cmd = "dot -Tpng " + automaton_name + " -o " + automaton_name + ".png";
+	system(cmd.data());
+	cmd = automaton_name + ".png";
+	system(cmd.data());
+	remove(automaton_name.data());
 }
 
 automate::~automate()

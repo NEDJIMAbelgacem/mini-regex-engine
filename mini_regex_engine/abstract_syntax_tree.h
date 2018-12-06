@@ -10,7 +10,7 @@ class abstract_syntax_tree
 {
 public:
 	friend class automate;
-	enum Type {Concat_OP, Union_OP, Star_OP, Optional_OP, Leaf};
+	enum Type {Concat_OP, Union_OP, Star_OP, Optional_OP, Plus_OP, Leaf};
 	Type type;
 	char c;
 private:

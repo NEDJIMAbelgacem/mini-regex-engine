@@ -5,6 +5,8 @@
 #include <stack>
 #include <algorithm>
 #include <tuple>
+#include <string>
+
 #include "regex_instance.h"
 #include "abstract_syntax_tree.h"
 
@@ -33,8 +35,11 @@ public:
 	void add_transition(long long s1, char c, long long s2);
 	void delete_0_length_circuits();
 	void star_automaton(long long& next_state_index);
-	void optional_operation(long long& next_state_index);
+	void optional_automaton(long long& next_state_index);
+	void plus_automaton(long long& next_next_state_index);
 	void concat_automaton(const automate& a, long long& next_state_index);
 	void union_automation(const automate& a, long long& next_state_index);
+	string convert_to_dot_language();
+	void render_automaton(string automaton_name);
 	void print();
 };

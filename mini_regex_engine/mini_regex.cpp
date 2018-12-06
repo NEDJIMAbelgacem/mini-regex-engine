@@ -6,7 +6,7 @@ regex_instance mini_regex::parse_expression(string s) {
 	// s2 is the regex after the insertion of concatenation operator
 	string s2;
 	for (char c : s) {
-		if (s2.size() != 0 && s2.back() != '(' && s2.back() != '|' && c != ')' && c != '|' && c != '*') s2.push_back(CAT_OP);
+		if (s2.size() != 0 && s2.back() != '(' && s2.back() != '|' && c != ')' && c != '|' && c != '*' && c != '?' && c != '+') s2.push_back(CAT_OP);
 		s2.push_back(c);
 	}
 	abstract_syntax_tree* ast = abstract_syntax_tree::construct_ast(s2);
